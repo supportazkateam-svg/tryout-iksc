@@ -29,7 +29,20 @@ input[readonly]{opacity:.7}.ck{display:flex;gap:10px;font-weight:500}.ck input{w
 .ovl{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:var(--bg)}#cf{background:rgba(5,10,25,.7);z-index:15}.ovl .card{max-width:460px;text-align:center}
 .sc{font-size:4rem;font-weight:800;color:var(--pr);line-height:1.1;font-variant-numeric:tabular-nums}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}.stats div{background:var(--bg);border-radius:10px;padding:10px 4px;font-size:.8rem}.stats b{display:block;font-size:1.4rem;color:var(--pr)}
 .mnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--cd);border-top:1px solid var(--bd);box-shadow:0 -2px 10px rgba(11,42,91,.06)}.mnav button{flex:1;min-height:48px;border:1px solid var(--bd);border-radius:10px;background:#fbfcff;color:var(--pr);font:inherit;font-weight:700;font-size:1.15rem;cursor:pointer}.mnav #mgg{flex:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:1rem}.mnav #mgg small{font-size:.72rem;font-weight:600;color:var(--mu)}.mnav button:disabled{opacity:.4}@media(max-width:800px){.mnav[hidden]{display:none}.mnav{display:flex}}@media(max-width:480px){.bar b{font-size:.88rem}#vl,#fsbadge{display:none}}
-</style></head><body>
+
+/* EXPIRED: Halaman expired fullscreen */
+#v-expired{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);text-align:center}
+#v-expired .exp-card{max-width:480px;width:100%;background:var(--cd);border:1px solid var(--bd);border-radius:18px;padding:40px 28px;box-shadow:0 10px 40px rgba(11,42,91,.12);animation:fadeUp .5s ease}
+#v-expired img.exp-lock{width:96px;height:96px;object-fit:contain;margin:0 auto 22px;display:block;filter:drop-shadow(0 4px 12px rgba(11,42,91,.18));animation:pulseLock 2.4s ease-in-out infinite}
+#v-expired h1{font-size:1.35rem;margin:0 0 12px;color:var(--pr);line-height:1.35;font-weight:700}
+#v-expired p{font-size:.98rem;color:var(--mu);margin:0;line-height:1.65}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulseLock{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+body.is-expired{overflow:hidden!important;height:100vh;pointer-events:none;user-select:none!important;-webkit-user-select:none!important}
+body.is-expired #v-expired{pointer-events:auto}
+body.is-expired > *:not(#v-expired){display:none!important}
+</style></head><body class="is-expired">
+<!-- EXPIRED: overlay dibuat via JS, lihat script -->
 <section id="v-login"><main class="wrap"><div class="card"><div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="m8.5 12 2.4 2.4 4.6-4.9"/></svg><div><h1>Tryout Spesial IKSC 2026</h1><p class="mu">Level Benjamin (Kelas 5–6 SD) · 30 soal · 120 menit</p></div></div>
 <form id="f"><label>Nama Lengkap<input id="nm" maxlength="60" autocomplete="off"></label><label>Asal Sekolah<input id="sk" maxlength="80" autocomplete="off"></label>
 <label>Kelas<select id="kl"><option value="">Pilih kelas</option><option>5</option><option>6</option></select></label><label>Level<input id="lv" value="3" readonly tabindex="-1"></label>
@@ -43,6 +56,103 @@ input[readonly]{opacity:.7}.ck{display:flex;gap:10px;font-weight:500}.ck input{w
 <div id="ov" class="ovl" hidden><div class="card"><h2 id="ot"></h2><p id="om"></p><br><button class="btn" id="ob">Kembali ke Ujian</button></div></div>
 <div id="cf" class="ovl" hidden><div class="card"><h2>Selesaikan ujian?</h2><p id="cm"></p><div class="ft"><button class="btn g" id="cn">Kembali</button><button class="btn" id="cy">Ya, selesaikan</button></div></div></div>
 <script>
+/* EXPIRED: Ubah ke false untuk mengaktifkan kembali website */
+const EXPIRED = true;
+
+if (EXPIRED) {
+  const ovl = document.createElement('section');
+  ovl.id = 'v-expired';
+  ovl.setAttribute('role','alert');
+  ovl.setAttribute('aria-live','assertive');
+  ovl.innerHTML = `
+    <div class="exp-card">
+      <img class="exp-lock" src="svg-lock.png" alt="Website terkunci karena expired" />
+      <h1>Mohon Maaf</h1>
+      <p>Website ini sudah tidak bisa diakses lagi karena sudah mencapai waktu expired yang ditentukan.</p>
+    </div>`;
+  document.body.appendChild(ovl);
+  document.body.classList.add('is-expired');
+
+  const REMOVE_IDS = ['v-login','v-exam','v-res','ov','cf'];
+  REMOVE_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.remove();
+  });
+
+  const recreateOvl = () => {
+    const existing = document.getElementById('v-expired');
+    if(!existing || !existing.querySelector('.exp-card')){
+      if(existing) existing.remove();
+      const el = document.createElement('section');
+      el.id = 'v-expired';
+      el.setAttribute('role','alert');
+      el.innerHTML = `
+        <div class="exp-card">
+          <img class="exp-lock" src="svg-lock.png" alt="Website terkunci karena expired" />
+          <h1>Mohon Maaf</h1>
+          <p>Website ini sudah tidak bisa diakses lagi karena sudah mencapai waktu expired yang ditentukan.</p>
+        </div>`;
+      document.body.appendChild(el);
+    }
+  };
+
+  const sweep = () => {
+    REMOVE_IDS.forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.remove();
+    });
+    if(!document.body.classList.contains('is-expired')){
+      document.body.classList.add('is-expired');
+    }
+    recreateOvl();
+  };
+  
+  new MutationObserver(sweep).observe(document.documentElement, { 
+    childList: true, subtree: true, attributes: true, characterData: true 
+  });
+  setInterval(sweep, 500); 
+
+  document.addEventListener('keydown', e=>{
+    const k = e.key.toLowerCase();
+    const c = e.ctrlKey || e.metaKey;
+    if(
+      e.key === 'F12' ||
+      (c && e.shiftKey && ['i','j','c'].includes(k)) ||
+      (c && k === 'u') ||
+      (e.metaKey && e.altKey && ['i','j','u'].includes(k))
+    ){
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+
+  document.addEventListener('contextmenu', e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+
+  ['copy','cut','paste','dragstart','selectstart'].forEach(t=>{
+    document.addEventListener(t, e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+  });
+
+  addEventListener('beforeunload', e=>{
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
+  setInterval(()=>{
+    try{ localStorage.removeItem('iksc26'); }catch(e){}
+  }, 500);
+
+  throw new Error('EXPIRED');
+}
+
 const $=s=>document.querySelector(s),MAX=3,L='ABCDE',K=[...'BABBBBCCADCBCABBCBCACBBACCBDAB'].reverse().join('');
 const Q=[
 ["Di sebuah akuarium raksasa museum bahari, terdapat 15 ekor udang karang, 8 ekor penyu laut, 12 ekor ikan koki, dan 6 ekor kerang mutiara. Berapa jumlah total organisme di akuarium tersebut yang bernapas menggunakan insang?","41","33","27","20","15"],
